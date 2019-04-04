@@ -53,6 +53,7 @@
     <option name="width" value="960" />
     <option name="height" value="1053" />
   </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
@@ -106,7 +107,7 @@
     <option name="totallyTimeSpent" value="10108000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="960" y="0" width="960" height="1053" extended-state="5" />
+    <frame x="960" y="0" width="960" height="1053" extended-state="4" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.113436125" />
