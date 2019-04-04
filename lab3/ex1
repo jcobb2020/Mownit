@@ -1,0 +1,78 @@
+import Pkg;
+Pkg.add("Polynomials")
+Pkg.add("DataFrames")
+import Statistics
+using Statistics
+using Polynomials
+using Plots
+using DataFrames
+
+
+function naive_multiplication(A,B)
+C=zeros(Float64,size(A,1),size(B,2))
+  for i=1:size(A,1)
+    for j=1:size(B,2)
+        for k=1:size(A,2)
+            C[i,j]=C[i,j]+A[i,k]*B[k,j]
+        end
+    end
+end
+end
+
+function better_multiplication( A,B )
+C=zeros(Float64,size(A,1),size(B,2))
+  for j=1:size(B,2)
+    for k=1:size(A,2)
+        for i=1:size(A,1)
+            C[i,j]=C[i,j]+A[i,k]*B[k,j]
+        end
+    end
+end
+end
+
+xs = 0:10; ys = map(x->exp(x), xs)
+fit1=polyfit(xs, ys,3)
+
+function naive_time(size)
+    A = rand(size, size)
+    B = rand(size, size)
+    return @elapsed naive_multiplication(A,B)
+end
+
+function better_time(size)
+    A = rand(size, size)
+    B = rand(size, size)
+    return @elapsed better_multiplication(A,B)
+end
+
+function blas_time(size)
+    A = rand(size, size)
+    B = rand(size, size)
+    return @elapsed A*B
+end
+
+
+df = DataFrame(size=Float64[], naive=Float64[], better=Float64[], blas=Float64[])
+for i = 1:10
+    j=i*100
+    for k = 1:10
+        nt = naive_time(j)
+        bt = better_time(j)
+        blast = blas_time(j)
+        push!(df, (j, nt, bt, blast))
+    end
+end
+
+df
+
+plot(x=df[:1], [df[:2], df[:3], df[:4]])
+cleared = by(df, :size, :2=>mean, :3=>mean, :4=>mean, :2=>std, :3=>std, :4=>std)
+plot(cleared[:1], [cleared[:2], cleared[:3], cleared[:4]] )
+plot_naive = plot(cleared[:1], [cleared[:2]], yerr=cleared[:5], ylabel= "n_time")
+plot_better = plot(cleared[:1], [cleared[:3]], yerr=cleared[:6], ylabel = "b_time")
+plot_blas = plot(cleared[:1], [cleared[:4]], yerr=cleared[:7], ylabel = "blas_time")
+plot(plot_naive, plot_better, plot_blas, layout = grid(1,3))
+plot2 = plot!(plot_naive, cleared[:1], [cleared[:3]], yerr=cleared[:6], ylabel = "b_time")
+plot3 = plot!(plot2, cleared[:1], [cleared[:4]], yerr=cleared[:7], ylabel = "blas_time")
+cleared[:1]
+plot3

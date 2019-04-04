@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/zad2.dir/main.cpp.o  -o zad2 
