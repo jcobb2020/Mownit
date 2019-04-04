@@ -1,3 +1,0 @@
-/home/jcobb/Mownit/lab3/zad2/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/jcobb/Mownit/lab3/zad2/cmake-build-debug/CMakeFiles/zad2.dir
-/home/jcobb/Mownit/lab3/zad2/cmake-build-debug/CMakeFiles/edit_cache.dir
