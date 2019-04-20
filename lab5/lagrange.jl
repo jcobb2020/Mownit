@@ -56,7 +56,6 @@ function create_newton_interpolation(x_values, y_values)
         elseif level == 2
                 val=(y_values[index+1] - y_values[index])/(x_values[index+1]-x_values[index])
                 push!(diff_quotients[level], val)
-
         else
             num = diff_quotients[level-1][index+1]-diff_quotients[level-1][index]
             denom = x_values[index+level-1] - x_values[index]
@@ -86,9 +85,7 @@ function create_newton_interpolation(x_values, y_values)
         end
         return result
     end
-
     return count_newton_interpolation
-
 end
 
 
@@ -105,12 +102,12 @@ scatter(xs, A, label = "data points")
 plot!(xsf,B_fit_1, label="polynomial interpolation")
 
 scatter(xs, A, label = "data points")
-plot!(xsf,B_lagr_1, label="lagrange interpolation")
+plot!(xsf,B_lagr_1, label="lagrange interpolation", xlabel="index", ylabel="value")
 
 scatter(xs, A, label = "data points")
-plot!(xsf,B_newton_1, label="newton interpolation")
+plot!(xsf,B_newton_1, label="newton interpolation", xlabel="index", ylabel="value")
 
-scatter(xs, A, label = "data points")
+scatter(xs, A, label = "data points", xlabel="index", ylabel="value")
 plot!(xsf,B_fit_1, label="polynomial interpolation")
 plot!(xsf,B_lagr_1, label="lagrange interpolation")
 plot!(xsf,B_newton_1, label="newton interpolation")
@@ -126,16 +123,16 @@ function create_10rows(size)
         y_vals = [rand() for x in x_vals]
         y = rand()*size
         lagr_time = @elapsed create_lagrange_interpolation(x_vals, y_vals)
-        lagr = create_lagrange_interpolation(x_vals, y_vals)
-        lagr_time += @elapsed lagr(y)
+        #lagr = create_lagrange_interpolation(x_vals, y_vals)
+        #lagr_time = @elapsed lagr(y)
 
         newton_time = @elapsed create_newton_interpolation(x_vals, y_vals)
-        newton = create_newton_interpolation(x_vals, y_vals)
-        newton_time += @elapsed lagr(y)
+        #newton = create_newton_interpolation(x_vals, y_vals)
+        #newton_time = @elapsed newton(y)
 
         poly_time = @elapsed polyfit(x_vals, y_vals)
         fit = polyfit(x_vals, y_vals)
-        poly_time += @elapsed fit(y)
+        #poly_time = @elapsed fit(y)
         push!(lagrange_ar, lagr_time)
         push!(newton_ar, newton_time)
         push!(poly_ar, poly_time)
@@ -163,7 +160,7 @@ plot_lagrange = plot(cleared[:1], [cleared[:2]], yerr=cleared[:5], ylabel= "n_ti
 plot_newton = plot(cleared[:1], [cleared[:3]], yerr=cleared[:6], ylabel= "n_time", label = "newton")
 plot_poly = plot(cleared[:1], [cleared[:4]], yerr=cleared[:7], ylabel= "n_time", label = "poly")
 
-plot_all = plot(cleared[:1], [cleared[:2]], yerr=cleared[:5], label = "lagrange")
+plot_all = plot(cleared[:1], [cleared[:2]], yerr=cleared[:5], label = "lagrange", xlabel = "points", ylabel="time[s]")
 plot!(cleared[:1], [cleared[:3]], yerr=cleared[:6], label = "newton")
 plot!(cleared[:1], [cleared[:4]], yerr=cleared[:7], label = "poly")
 
@@ -172,12 +169,6 @@ function splajn_simple(x_vals, y_vals)
     function toReturn(value)
         len = length(x_vals)
         index_upper = 1
-        #for i in 1:len
-        #    if value>x_vals[i]
-        #        break
-        #    end
-        #end
-
         while value >= x_vals[index_upper]
             index_upper = index_upper + 1
             if index_upper>len
@@ -206,4 +197,179 @@ end
 
 splajn1 = splajn_simple(xs, A)
 B_splajn = [splajn1(x) for x in xsf]
-scatter(xsf, B_splajn)
+scatter(xs, A, label = "points")
+plot!(xsf, B_splajn, xlabel="point number", ylabel = "value", label = "spline")
+
+cubic1 = CubicSplineInterpolation(xs, A)
+B_cubic1 = [cubic1(x) for x in xsf]
+scatter(xs, A, label = "points", xlabel="point number", ylabel = "value")
+plot!(xsf, B_cubic1, label = "cubic splajn")
+plot!(xsf, B_splajn, label="linear splajn")
+
+
+ss = 12
+C = 1:1:ss
+D = 1:0.5:ss
+C_vals = [rand() for x in C]
+D_vals
+
+for i in 1:ss
+    push!(D_vals,C_vals[i])
+    if i<ss
+        push!(D_vals,(C_vals[i+1]-C_vals[i])/2)
+    end
+end
+
+C_lagr = create_lagrange_interpolation(C, C_vals)
+D_lagr = create_lagrange_interpolation(D, D_vals)
+xsd = 1:0.001:ss
+B_C = [C_lagr(x) for x in xsd]
+B_D = [D_lagr(x) for x in xsd]
+scatter(C, C_vals, label="points")
+plot!(xsd, B_D, label = "23 points")
+
+scatter(C, C_vals, label="points", xlabel ="point number", ylabel="value")
+plot!(xsd, B_C, label = "12 points")
+plot!(xsd, B_D, label = "23 points")
+
+
+
+function create_nearest_interpolation(x_vals, y_vals)
+
+    function to_return(value)
+        len = length(x_vals)
+        if value < x_vals[1]
+            return y_vals[1]
+        elseif value>x_vals[len]
+            return y_vals[len]
+        end
+        index_upper = 1
+        while value >= x_vals[index_upper]
+            index_upper = index_upper + 1
+            if index_upper>len
+                index_upper=len
+                break
+            end
+        end
+        if x_vals[index_upper] - value > value - x_vals[index_upper-1]
+            return y_vals[index_upper-1]
+        else
+            return y_vals[index_upper]
+        end
+    end
+    return to_return
+
+end
+
+nearest_1 = create_nearest_interpolation(xs, A)
+B_nearest = [nearest_1(x) for x in xsf]
+scatter(xs,A)
+plot!(xsf, B_nearest)
+
+k=8
+data = []
+for i in 1:k
+    push!(x2d, [])
+end
+
+for i in 1:k
+    for j in 1:k
+        push!(data[i],i+j)
+    end
+end
+
+
+function create_nearest_interpolation2(data)
+    k = length(data)[1]
+
+    function to_return(val1, val2)
+        if val1 - floor(val1) > 0,5
+            val1=floor(val1)
+        else
+            val1=roof(val1)
+        end
+
+        if val2 - floor(val1) > 0,5
+            val2=floor(val1)
+        else
+            val2=roof(val1)
+        end
+        return data[val1][val2]
+    end
+        
+    return to_return
+
+end
+
+
+"""
+function create_bilinear_interpolation(x_vals, y_vals)
+
+    function to_return(value)
+        len = length(x_vals)
+        if value < x_vals[1]
+            return y_vals[1]
+        elseif value>x_vals[len]
+            return y_vals[len]
+        end
+        index_upper = 1
+        while value >= x_vals[index_upper]
+            index_upper = index_upper + 1
+            if index_upper>len
+                index_upper=len
+                break
+            end
+        end
+        ang = (y_vals[index_upper]-y_vals[index_upper-1])/(x_vals[index_upper]-x_vals[index_upper-1])
+
+        return x_vals[index_upper-1]
+    end
+    return to_return
+
+end
+"""
+
+
+
+
+
+
+
+
+""" #cubic splajn function, does not work properly
+function cubic_splajn(x_vals, y_vals)
+    h = []
+
+    len = length(x_vals)
+    for i in 1:len-1
+        to_push = x_vals[i+1] - x_vals[i]
+        push!(h, to_push)
+    end
+
+    function get_index(value)
+        x_index = 1
+        while x_vals[x_index]>value
+            x_index = x_index+1
+        end
+        return x_index
+    end
+
+    function to_return(value)
+        x_index = get_index(value)
+        if x_index>=len
+            x_index = len-1
+        end
+        w = (value-x_vals[x_index])/h[x_index]
+        w_k = (x_vals[x_index+1]-value)/h[x_index]
+        result = w*y_vals[x_index+1]+w_k*y_vals[x_index]
+        #result2 = (h[x_index]^2)*((w^3-w)+(w_k^3-w_k))
+        return result# + result2
+    end
+    return to_return
+end
+
+cubic1 = cubic_splajn(xs, A)
+B_cubic1 = [cubic1(x) for x in xsf]
+
+plot(xsf, B_cubic1)
+"""
